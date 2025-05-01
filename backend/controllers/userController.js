@@ -1,6 +1,6 @@
 const { model } = require('mongoose');
 // const Task = require('../models/task');
-const User = require('../models/users');
+const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
 // @desc get all users (admin only)

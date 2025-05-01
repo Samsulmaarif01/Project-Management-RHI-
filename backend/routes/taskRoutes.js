@@ -1,6 +1,7 @@
 const express = require("express");
-const {protect, adminOnly} = require("../middleware/authMiddleware");
-const { get } = require("mongoose");
+const {protect, adminOnly} = require("../middlewares/authMiddleware");
+// const { get } = require("mongoose");
+const { getDashboardData, getUserDashboardData, getTasks, getTaskById, createTask, updateTask, deleteTask, updateTaskStatus, updateTaskChecklist } = require("../controllers/taskControllers");
 
 const router = express.Router();
 

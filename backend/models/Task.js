@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const todoSchema = new mongoose.Schema({
-    Text: {
+    text: {
         type: String,
         required: true,
     },
@@ -33,20 +33,18 @@ const taskSchema = new mongoose.Schema({
         type: Date,
         required:true,
     },
-    asignedTo: [{
+    assignedTo: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-    }],
-    createBy: [{
+      }],      
+      createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-    }],
+      },      
     attachments: [{
-        type: string,
+        type: String,
     }],
-    todoChecklist: {
-        todoSchema
-    },
+    todoChecklist: [todoSchema],
     progress: {
         type: Number,
         default: 0,
