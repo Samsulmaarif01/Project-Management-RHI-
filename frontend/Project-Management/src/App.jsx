@@ -9,6 +9,7 @@ import MyTask from './pages/User/MyTask'
 import ViewTaskDetail from './pages/User/ViewTaskDetail'
 import Login from './pages/Auth/Login'
 import Signup from './pages/Auth/Signup'
+import PrivateRoute from './routes/PrivateRoute'
 
 const App = () => {
   return (
