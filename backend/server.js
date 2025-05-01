@@ -5,18 +5,21 @@ const path = require("path");
 // const { report } = require("process");
 // const { connect } = require("http2");
 const connectDB = require("./config/db");
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 
 // middlewares cors
 app.use(
     cors({
-        origin: process.env.CLIENT_URL || "*",
-        methods: ["GET", "POST", "PUT", "DELETE"],
-        aloowHeaders: [
-            "Content-Type", "Authorization"],
-    }),
-);
+      origin: process.env.CLIENT_URL || "*",
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    })
+  );
+  
+  
 
 // database connection
 connectDB();
@@ -27,10 +30,10 @@ app.use(express.json());
 
 
 // routes
-// app.use("/api/auth ", authRoutes);
-// app.use("/api/users ", userRoutes);
-// app.use("/api/tasks ", taskRoutes);
-// app.use("/api/reports ", reportRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+// app.use("/api/tasks", taskRoutes);
+// app.use("/api/reports", reportRoutes);
 
 // start server
 const PORT = process.env.PORT || 5000;
