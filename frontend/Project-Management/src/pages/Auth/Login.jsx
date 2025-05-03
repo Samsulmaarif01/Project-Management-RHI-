@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Input from '../../components/Inputs/Input';
 import Logo from '../../assets/images/Logo RHI.png'; 
 import { validateEmail } from '../../utils/helper';
-import axiosInstance from '../../utils/axiosinstance';
+import axiosInstance from '../../utils/axiosInstance';
 import { API_PATH } from '../../utils/apiPath';
 
 const Login = () => {
@@ -12,6 +12,7 @@ const Login = () => {
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
 
+  const { updateUser } = React.useContext(UserContext); // Ambil fungsi updateUser dari context
   const navigate = useNavigate();
 
   // Fungsi untuk menangani login
@@ -41,6 +42,7 @@ const Login = () => {
 
       if (token) {
         localStorage.setItem('token', token); // Simpan token ke localStorage
+        updateUser(response.data); // Panggil fungsi untuk memperbarui user
 
         // mengrah ke halaman dashboard sesuai role
         if (role === 'admin') {
