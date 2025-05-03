@@ -1,9 +1,11 @@
 import React from 'react';
 import AuthLayout from '../../components/Layouts/AuthLayout';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Input from '../../components/Inputs/Input';
-import Logo from '../../assets/images/Logo RHI.png'; // Pastikan path ini benar
+import Logo from '../../assets/images/Logo RHI.png'; 
 import { validateEmail } from '../../utils/helper';
+import axiosInstance from '../../utils/axiosinstance';
+import { API_PATH } from '../../utils/apiPath';
 
 const Login = () => {
   const [email, setEmail] = React.useState('');
@@ -29,7 +31,34 @@ const Login = () => {
     setError(''); 
 
     // melakukan login ke API
+    try {
+      const response = await axiosInstance.post(API_PATH.AUTH.LOGIN, {
+        email,
+        password,
+      });
 
+      const { token, role } = response.data; // Ambil token dan role dari response
+
+      if (token) {
+        localStorage.setItem('token', token); // Simpan token ke localStorage
+
+        // mengrah ke halaman dashboard sesuai role
+        if (role === 'admin') {
+          navigate('/admin/dashboard'); // Ganti dengan route admin dashboard
+        } else if (role === 'user') {
+          navigate('/user/dashboard'); // Ganti dengan route user dashboard
+        } else {
+          setError('Role tidak dikenali');
+        }
+      }
+    }
+    catch (error) {
+      if (error.response && error.response.data.message) {
+        setError(error.response.data.message); // Tampilkan pesan error dari server
+      }else {
+        setError('Terjadi kesalahan, silakan coba lagi'); // Tampilkan pesan error umum
+      }
+    }
   };
 
   return (
@@ -76,9 +105,9 @@ const Login = () => {
 
           <p className='text-xs text-slate-700 mt-4'>
             Belum punya akun?{' '}
-            <a href='/signup' className='text-blue-600 hover:underline'>
+            <Link to='/signup' className='text-blue-600 hover:underline'>
               Daftar Sekarang
-            </a>
+            </Link>
           </p>
         </form>
       </div>
