@@ -30,13 +30,24 @@ const UserProvider = ({ children }) => {
         };
 
         fetchUser();
-    }, []); // Tambahkan tanda kurung penutup di sini
+    }, []); 
+
+    const updateUser = (userData) => {
+        setUser(userData);
+        localStorage.setItem("token", userData.token)
+        setLoading(false); 
+    }
+
+    const clearUser = () => {
+        setUser(null);
+        localStorage.removeItem("token");
+    }
 
     return (
-        <UserContext.Provider value={{ user, loading }}>
+        <UserContext.Provider value={{ user, loading, updateUser, clearUser}}>
             {children}
         </UserContext.Provider>
     );
-};
+}
 
 export default UserProvider;

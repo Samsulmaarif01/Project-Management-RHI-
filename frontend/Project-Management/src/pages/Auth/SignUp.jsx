@@ -2,8 +2,12 @@ import React from 'react';
 import AuthLayout from '../../components/Layouts/AuthLayout';
 import ProfilePhotoSelector from '../../components/Inputs/ProfilePhotoSelector';
 import Input from '../../components/Inputs/Input';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { validateEmail } from '../../utils/helper'; 
+import axiosInstance from '../../utils/axiosInstance';
+import { API_PATH } from '../../utils/apiPath';
+import { UserContext } from '../../context/userContext';
+import uploadImage from '../../utils/uploadImage';
 
 const Signup = () => {
   const [profilPic, setProfilPic] = React.useState(null);
@@ -14,8 +18,13 @@ const Signup = () => {
 
   const [error, setError] = React.useState(null);
 
+  const { updateUser } = React.useContext(UserContext); // Ambil fungsi updateUser dari context
+  const navigate = useNavigate();
+
   const handleSignUp = async (e) => {
     e.preventDefault();
+
+    let profileImageUrl = '';
 
     if (!fullName) {
       setError('Masukkan Nama Lengkap');
@@ -33,6 +42,44 @@ const Signup = () => {
     setError('');
 
     // Lanjutkan signup ke API
+    try {
+
+      // Jika ada gambar profil, upload ke server
+      if (profilPic) {
+        const imgUploadRes = await uploadImage(profilPic);
+        profileImageUrl = imgUploadRes.imageUrl || "";
+      }
+      // melakukan signup ke API
+      const response = await axiosInstance.post(API_PATH.AUTH.REGISTER, {
+        name: fullName,
+        email,
+        password,
+        profileImageUrl,
+        adminInviteToken
+      });
+
+      const { token, role } = response.data; // Ambil token dan role dari response
+
+      if (token) {
+        localStorage.setItem('token', token); // Simpan token ke localStorage
+        updateUser(response.data); // Panggil fungsi untuk memperbarui user
+
+        // mengrah ke halaman dashboard sesuai role
+        if (role === 'admin') {
+          navigate('/admin/dashboard'); 
+        } else{
+          navigate('/user/dashboard'); 
+        }
+      }
+
+    }
+    catch (error) {
+      if (error.response && error.response.data.message) {
+        setError(error.response.data.message); // Tampilkan pesan error dari server
+      }else {
+        setError('Terjadi kesalahan, silakan coba lagi'); // Tampilkan pesan error umum
+      }
+    }
   };
 
   return (
@@ -48,24 +95,28 @@ const Signup = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               type="text"
+              label="Nama Lengkap"
               value={fullName}
               onChange={({ target }) => setFullName(target.value)}
               placeholder="Nama Lengkap"
             />
             <Input
               type="email"
+              label="Alamat Email"
               value={email}
               onChange={({ target }) => setEmail(target.value)}
               placeholder="Email"
             />
             <Input
               type="password"
+              label="Password"
               value={password}
               onChange={({ target }) => setPassword(target.value)}
               placeholder="Password"
             />
             <Input
               type="text"
+              label="Admin Invite Token"
               value={adminInviteToken}
               onChange={({ target }) => setAdminInviteToken(target.value)}
               placeholder="6 digit kode undangan admin"

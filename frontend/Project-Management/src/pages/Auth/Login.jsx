@@ -2,10 +2,10 @@ import React from 'react';
 import AuthLayout from '../../components/Layouts/AuthLayout';
 import { Link, useNavigate } from 'react-router-dom';
 import Input from '../../components/Inputs/Input';
-import Logo from '../../assets/images/Logo RHI.png'; 
 import { validateEmail } from '../../utils/helper';
 import axiosInstance from '../../utils/axiosInstance';
 import { API_PATH } from '../../utils/apiPath';
+import { UserContext } from '../../context/userContext';
 
 const Login = () => {
   const [email, setEmail] = React.useState('');
@@ -66,8 +66,7 @@ const Login = () => {
   return (
     <AuthLayout>
       <div className='lg:w-[70%] h-3/4 md:h-full flex flex-col justify-center items-center'>
-        <img src={Logo} alt="Logo RHI" className="w-40" /> {/* Lebih besar, tanpa mb */}
-        <h3 className='text-xl font-semibold text-black -mt-1'>Selamat Datang</h3> {/* -mt menghilangkan gap */}
+        <h3 className='text-xl font-semibold text-black -mt-1'>Selamat Datang</h3>
         <p className='text-xs text-slate-700 mt-[5px] mb-6'>
           Silakan masukkan email dan password
         </p>
