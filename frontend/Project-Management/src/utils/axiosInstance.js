@@ -35,9 +35,9 @@ axiosInstance.interceptors.response.use(
         // Redirect to login page if token is invalid
         window.location.href = '/login';
       } else if (error.response.status === 500) {
-        console.error('Server error:', error.response.data);
-      } else if (error.response.status === 404) {
-        console.error('Not found:', error.response.data);
+        console.error('Server error:');
+      } else if (error.code === "ECONNABORTED") {
+        console.error('Request Time Out');
       }
     }
     return Promise.reject(error);

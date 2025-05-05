@@ -5,49 +5,49 @@ import { API_PATH } from "../utils/apiPath";
 export const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            if (user) return;
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (user) return;
 
-            const accessToken = localStorage.getItem("access_token");
-            if (!accessToken) {
-                setLoading(false);
-                return;
-            }
+      const accessToken = localStorage.getItem("token"); 
+      if (!accessToken) {
+        setLoading(false);
+        return;
+      }
 
-            try {
-                const response = await axiosInstance.get(API_PATH.AUTH.GET_PROFILE);
-                setUser(response.data); // Memindahkan setUser ke tempat yang benar
-            } catch (error) {
-                console.error("Error fetching user data:", error);
-                clearUser();
-            } finally {
-                setLoading(false);
-            }
-        };
+      try {
+        const response = await axiosInstance.get(API_PATH.AUTH.GET_PROFILE);
+        setUser(response.data); 
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        clearUser();
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        fetchUser();
-    }, []); 
+    fetchUser();
+  }, []); 
 
-    const updateUser = (userData) => {
-        setUser(userData);
-        localStorage.setItem("token", userData.token)
-        setLoading(false); 
-    }
+  const updateUser = (userData) => {
+    setUser(userData);
+    localStorage.setItem("token", userData.token); 
+    setLoading(false);
+  };
 
-    const clearUser = () => {
-        setUser(null);
-        localStorage.removeItem("token");
-    }
+  const clearUser = () => {
+    setUser(null);
+    localStorage.removeItem("token"); 
+  };
 
-    return (
-        <UserContext.Provider value={{ user, loading, updateUser, clearUser}}>
-            {children}
-        </UserContext.Provider>
-    );
-}
+  return (
+    <UserContext.Provider value={{ user, loading, updateUser, clearUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
 
 export default UserProvider;

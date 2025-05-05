@@ -4,24 +4,26 @@ import Navbar from './Navbar';
 import SideMenu from './SideMenu';
 
 const DashboardLayout = ({ children, activeMenu }) => {
-  const { user } = useContext(UserContext);
+    const { user } = useContext(UserContext);
 
-  return (
-    <div className=''>
-      <Navbar activeMenu={activeMenu} />
-      {user && (
-        <div className='flex'>
-          <div className='max-[180px]:hidden'>
-            <SideMenu activeMenu={activeMenu} />
-          </div>
+    return (
+        <div>
+            <Navbar activeMenu={activeMenu} />
+            {user && (
+                <div className='flex'>
+                    {/* Sidebar Desktop */}
+                    <div className='hidden lg:block'>
+                        <SideMenu activeMenu={activeMenu} />
+                    </div>
 
-          <div className='grow mx-5'>
-            {children}
-          </div>
+                    {/* Konten Utama */}
+                    <div className='flex-grow px-5 py-4'>
+                        {children}
+                    </div>
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 };
 
 export default DashboardLayout;
