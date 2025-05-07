@@ -20,35 +20,6 @@ import UserProvider, { UserContext } from "./context/userContext";
 import SuspenseLoader from "./components/SuspenseLoader";
 
 const App = () => {
-  const ProtectedRoute = ({ element, requiredRole }) => {
-    const [userRole, setUserRole] = useState("");
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-      const fetchUserRole = async () => {
-        const userData = JSON.parse(localStorage.getItem("user-data") || "{}");
-        if (userData) {
-          setUserRole(userData.role);
-        } else {
-          setUserRole("");
-        }
-        setLoading(false);
-      };
-
-      fetchUserRole();
-    }, []);
-
-    if (loading) {
-      return <SuspenseLoader />;
-    }
-
-    if (userRole !== requiredRole) {
-      return <Navigate to="/login" />;
-    }
-
-    return element;
-  };
-
   return (
     <UserProvider>
       <div>
@@ -59,24 +30,22 @@ const App = () => {
             <Route path="/signup" element={<Signup />} />
 
             {/* Protected Admin Routes */}
-            {/* <Route element={<PrivateRoute allowedRoles={"admin"} />}> */}
-            <Route
-              path="/admin/dashboard"
-              element={
-                <ProtectedRoute element={<Dashboard />} requiredRole="admin" />
-              }
-            />
-            <Route path="/admin/task" element={<ManageTasks />} />
-            <Route path="/admin/create-task" element={<CreateTask />} />
-            <Route path="/admin/users" element={<ManageUsers />} />
-            {/* </Route> */}
+            <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
+              <Route path="/admin/dashboard" element={<Dashboard />} />
+              <Route path="/admin/task" element={<ManageTasks />} />
+              <Route path="/admin/create-task" element={<CreateTask />} />
+              <Route path="/admin/users" element={<ManageUsers />} />
+            </Route>
 
             {/* routes user*/}
-            {/* <Route element={<PrivateRoute allowedRoles={["member"]} />}> */}
-            <Route path="/user/dashboard" element={<UserDashboard />} />
-            <Route path="/user/tasks" element={<MyTask />} />
-            <Route path="/user/task-details/:id" element={<ViewTaskDetail />} />
-            {/* </Route> */}
+            <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
+              <Route path="/user/dashboard" element={<UserDashboard />} />
+              <Route path="/user/tasks" element={<MyTask />} />
+              <Route
+                path="/user/task-details/:id"
+                element={<ViewTaskDetail />}
+              />
+            </Route>
 
             {/* default route */}
             <Route path="/" element={<Root />} />

@@ -16,7 +16,7 @@ import CustomBarChart from "../../components/Charts/CustomBarChart";
 const COLORS = ["#8D51FF", "#0B8D8", "#7BCE00"];
 
 const Dashboard = () => {
-  // useUserAuth();
+  useUserAuth();
 
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -31,18 +31,18 @@ const Dashboard = () => {
     const taskPriorityLevels = data?.taskPriorityLevels || null;
 
     const taskDistributionData = [
-      { status: "Pending", count: taskDistribution?.Pending || 0 },
-      { status: "In Proggress", count: taskDistribution?.InProgress || 0 },
-      { status: "Completed", count: taskDistribution?.Completed || 0 },
+      { status: "Pending", count: taskDistribution?.Pending || 3 },
+      { status: "In Progress", count: taskDistribution?.InProgress || 5 },
+      { status: "Completed", count: taskDistribution?.Completed || 7 },
     ];
 
     setPieChartData(taskDistributionData);
 
     // set pieChart
     const PriorityLevelData = [
-      { priority: "Low", count: taskPriorityLevels?.Low || 0 },
-      { priority: "Medium", count: taskPriorityLevels?.Medium || 0 },
-      { priority: "High", count: taskPriorityLevels?.High || 0 },
+      { priority: "Low", count: taskPriorityLevels?.Low || 4 },
+      { priority: "Medium", count: taskPriorityLevels?.Medium || 6 },
+      { priority: "High", count: taskPriorityLevels?.High || 2 },
     ];
 
     setBarChartData(PriorityLevelData);
@@ -66,7 +66,7 @@ const Dashboard = () => {
     navigate("/admin/tasks");
   };
   useEffect(() => {
-    // getDashboardData();
+    getDashboardData();
 
     return () => {};
   }, []);
@@ -75,23 +75,21 @@ const Dashboard = () => {
     <DashboardLayout activeMenu="Dashboard">
       <div className="card my-5">
         <div>
-          <div className="mb-4">
-            <h2 className="text-xl md:text-2xl font-semibold">
-              Hai, {user?.name}
-            </h2>
-            <p className="text-xs md:text-sm text-gray-400 mt-1.5">
+          <div className="col-span-3">
+            <h2 className="text-xl md:text-2xl"> Hai, {user?.name}</h2>
+            <p className="text-xs md:text-[13px] text-gray-400 mt-1.5">
               {moment().format("dddd Do MMM YYYY")}
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mt-5">
           <InfoCard
             label="Total Tugas"
             value={addThousandsSeparator(
               dashboardData?.taskDistribution?.All || 0
             )}
-            color="bg-cyan-500"
+            color="bg-primary"
           />
           <InfoCard
             label="Tugas Tertunda"
@@ -112,7 +110,7 @@ const Dashboard = () => {
             value={addThousandsSeparator(
               dashboardData?.taskDistribution?.Completed || 0
             )}
-            color="bg-cyan-500"
+            color="bg-lime-500"
           />
         </div>
       </div>
@@ -126,7 +124,7 @@ const Dashboard = () => {
             <CustomPieChart
               data={pieChartData}
               label="Total Balance"
-              color={COLORS}
+              colors={COLORS}
             />
           </div>
         </div>
@@ -144,13 +142,12 @@ const Dashboard = () => {
           <div className="card">
             <div className="flex items-center justify-between">
               <h5 className="text-lg">Recent Task</h5>
-              <button
-                className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-primary bg-gray-50 hover:bg-blue-50 px-4 py-1.5 rounded-lg border border-gray-200/50 cursor-pointer"
-                onClick={onSeeMore}
-              >
+
+              <button className="card-btn" onClick={onSeeMore}>
                 See All <LuArrowRight className="text-base" />
               </button>
             </div>
+
             <TaskListTable tableData={dashboardData?.recentTasks || []} />
           </div>
         </div>

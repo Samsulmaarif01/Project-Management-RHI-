@@ -7,6 +7,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+
 import CustomTooltip from "./CustomTooltip";
 import CustomLegend from "./CustomLegend";
 
@@ -24,7 +25,7 @@ const CustomPieChart = ({ data, colors }) => {
           innerRadius={100}
           labelLine={false}
         >
-          {data?.map((item, index) => (
+          {data?.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
           ))}
         </Pie>
