@@ -205,11 +205,11 @@ const CreateTask = () => {
   
 
   return (
-    <DashboardLayout activeMenu="Create Task">
+    <DashboardLayout activeMenu="Create Tasks">
       <div className="mt-5">
         <div className="grid grid-cols-1 md:grid-cols-4 mt-4">
           <div className="form-card col-span-3">
-            <div className="flex-items-center justify-between">
+            <div className="flex items-center justify-between">
               <h2 className="text-xl md:text-xl font-medium">
                 {taskId ? "Update Task" : "Create Task"}
               </h2>
