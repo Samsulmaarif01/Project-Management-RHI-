@@ -32,13 +32,11 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response) {
       if (error.response.status === 401) {
-        // Redirect to login page if token is invalid
-        window.location.href = '/login';
-      } else if (error.response.status === 500) {
-        console.error('Server error:');
-      } else if (error.code === "ECONNABORTED") {
-        console.error('Request Time Out');
-      }
+        alert("Sesi anda telah habis. Silakan login kembali.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user-data");
+        window.location.href = "/login";
+      }      
     }
     return Promise.reject(error);
   }
