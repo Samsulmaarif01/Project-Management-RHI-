@@ -10,9 +10,8 @@ const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (user) return;
-
       const accessToken = localStorage.getItem("token");
+
       if (!accessToken) {
         setLoading(false);
         return;
@@ -31,13 +30,14 @@ const UserProvider = ({ children }) => {
 
     fetchUser();
   }, []);
-
+  
   const updateUser = (userData) => {
     setUser(userData);
     localStorage.setItem("token", userData.token);
+    localStorage.setItem("user-data", JSON.stringify(userData)); // tambahkan ini
     setLoading(false);
   };
-
+  
   const clearUser = () => {
     setUser(null);
     localStorage.removeItem("token");

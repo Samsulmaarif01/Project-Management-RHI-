@@ -13,12 +13,13 @@ import TaskListTable from "../../components/TaskListTable";
 import CustomPieChart from "../../components/Charts/CustomPieChart";
 import CustomBarChart from "../../components/Charts/CustomBarChart";
 
-const COLORS = ["#8D51FF", "#0B8D8", "#7BCE00"];
+const COLORS = ["#A855F7", "#06B6D4", "#22C55E"];
 
 const Dashboard = () => {
   useUserAuth();
 
   const { user } = useContext(UserContext);
+
   const navigate = useNavigate();
 
   const [dashboardData, setDashboardData] = useState(null);
@@ -31,18 +32,18 @@ const Dashboard = () => {
     const taskPriorityLevels = data?.taskPriorityLevels || null;
 
     const taskDistributionData = [
-      { status: "Pending", count: taskDistribution?.Pending || 3 },
-      { status: "In Progress", count: taskDistribution?.InProgress || 5 },
-      { status: "Completed", count: taskDistribution?.Completed || 7 },
+      { status: "Pending", count: taskDistribution?.Pending || 0 },
+      { status: "In Progress", count: taskDistribution?.InProgress || 0 },
+      { status: "Completed", count: taskDistribution?.Completed || 0 },
     ];
 
     setPieChartData(taskDistributionData);
 
     // set pieChart
     const PriorityLevelData = [
-      { priority: "Low", count: taskPriorityLevels?.Low || 4 },
-      { priority: "Medium", count: taskPriorityLevels?.Medium || 6 },
-      { priority: "High", count: taskPriorityLevels?.High || 2 },
+      { priority: "Low", count: taskPriorityLevels?.Low || 0 },
+      { priority: "Medium", count: taskPriorityLevels?.Medium || 0 },
+      { priority: "High", count: taskPriorityLevels?.High || 0 },
     ];
 
     setBarChartData(PriorityLevelData);
@@ -55,7 +56,7 @@ const Dashboard = () => {
       );
       if (response.data) {
         setDashboardData(response.data);
-        prepareChartData(response.data?.charts || null);
+        prepareChartData(response.data?.chart || null);
       }
     } catch (error) {
       console.error("Error fetching users", error);
@@ -65,6 +66,7 @@ const Dashboard = () => {
   const onSeeMore = () => {
     navigate("/admin/tasks");
   };
+
   useEffect(() => {
     getDashboardData();
 
@@ -85,30 +87,33 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mt-5">
           <InfoCard
-            label="Total Tugas"
+            label="Total Tasks"
             value={addThousandsSeparator(
-              dashboardData?.taskDistribution?.All || 0
+              dashboardData?.chart?.taskDistribution?.All || 0
             )}
             color="bg-primary"
           />
+
           <InfoCard
-            label="Tugas Tertunda"
+            label="Pending Tasks"
             value={addThousandsSeparator(
-              dashboardData?.taskDistribution?.Pending || 0
+              dashboardData?.chart?.taskDistribution?.Pending || 0
             )}
             color="bg-violet-500"
           />
+
           <InfoCard
-            label="In Progress"
+            label="In Progress Tasks"
             value={addThousandsSeparator(
-              dashboardData?.taskDistribution?.InProgress || 0
+              dashboardData?.chart?.taskDistribution?.InProgress || 0
             )}
             color="bg-cyan-500"
           />
+
           <InfoCard
-            label="Tugas Selesai"
+            label="Completed Tasks"
             value={addThousandsSeparator(
-              dashboardData?.taskDistribution?.Completed || 0
+              dashboardData?.chart?.taskDistribution?.Completed || 0
             )}
             color="bg-lime-500"
           />

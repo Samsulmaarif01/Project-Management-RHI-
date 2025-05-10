@@ -17,7 +17,7 @@ const DashboardLayout = ({ children, activeMenu }) => {
           </div>
 
           {/* Konten Utama */}
-          <div className="flex-grow px-5">{children}</div>
+          <div className="grow mx-5">{children}</div>
         </div>
       )}
     </div>

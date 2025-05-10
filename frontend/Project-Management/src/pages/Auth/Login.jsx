@@ -47,15 +47,8 @@ const Login = () => {
 
     // melakukan login ke API
     try {
-      const response = await fetch(API_PATH.AUTH.LOGIN, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
+      const response = await axiosInstance.post(API_PATH.AUTH.LOGIN, payload);
+      const data = response.data;
 
       if (response.status === 200) {
         localStorage.setItem("token", data.token); // Simpan token ke localStorage
@@ -75,18 +68,20 @@ const Login = () => {
   };
 
   const handleEnter = (e) => {
-    if (e === "Enter") {
-      handleLogin();
+    if (e.key === "Enter") {
+      handleLogin(e);
     }
   };
+  
+  
 
   const checkData = JSON.parse(localStorage.getItem("user-data" || "{}"));
 
-  useEffect(() => {
-    if (checkData) {
-      handleNavigate(checkData.role);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (checkData) {
+  //     handleNavigate(checkData.role);
+  //   }
+  // }, []);
 
   return (
     <AuthLayout>
@@ -100,7 +95,7 @@ const Login = () => {
 
         <form
           onSubmit={handleLogin}
-          onKeyDown={handleEnter()}
+          onKeyDown={handleEnter}
           className="w-full flex flex-col gap-4"
         >
           <div className="flex flex-col">

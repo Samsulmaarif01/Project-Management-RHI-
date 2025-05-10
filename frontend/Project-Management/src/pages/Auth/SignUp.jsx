@@ -130,7 +130,7 @@ const Signup = () => {
               type='submit'
               className='bg-blue-600 text-white p-2 rounded hover:bg-blue-700 col-span-2'
             >
-              SignUp
+              Sign Up
             </button>
 
             <p className='text-xs text-slate-700 mt-4 col-span-2'>

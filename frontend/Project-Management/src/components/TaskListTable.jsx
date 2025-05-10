@@ -11,7 +11,7 @@ const TaskListTable = ({ tableData }) => {
       case "In Progress":
         return "bg-cyan-100 text-cyan-500 border border-cyan-200";
       default:
-        return "bg-gray-100 text-gray-500 border border-gray-200";
+        return "bg-gray-100 text-gray-500 border border-gary-200";
     }
   };
 
@@ -33,22 +33,23 @@ const TaskListTable = ({ tableData }) => {
       <table className="min-w-full">
         <thead>
           <tr className="text-left">
-            <th className="py-3 px-4 text-gray-800 font-medium text-[13px]">
+            <th className="py-3 px4 text-gray-800 font-medium text-[13px]">
               Nama
             </th>
-            <th className="py-3 px-4 text-gray-800 font-medium text-[13px]">
+            <th className="py-3 px4 text-gray-800 font-medium text-[13px]">
               Status
             </th>
-            <th className="py-3 px-4 text-gray-800 font-medium text-[13px]">
+            <th className="py-3 px4 text-gray-800 font-medium text-[13px]">
               Priority
             </th>
-            <th className="py-3 px-4 text-gray-800 font-medium text-[13px] hidden md:table-cell">
+            <th className="py-3 px4 text-gray-800 font-medium text-[13px] hidden md:table-cell">
               Created On
             </th>
           </tr>
         </thead>
         <tbody className="">
-          {tableData.map((task) => (
+          {tableData.map((task) => {
+            return (
             <tr key={task._id} className="border-t border-gray-200">
               <td className="my-3 mx-4 text-gray-700 text-[13px] line-clamp-1 overflow-hidden">
                 {task.title}
@@ -76,8 +77,8 @@ const TaskListTable = ({ tableData }) => {
                   ? moment(task.createdAt).format("Do MMM YYYY")
                   : "N/A"}
               </td>
-            </tr>
-          ))}
+            </tr>);
+          })}
         </tbody>
       </table>
     </div>

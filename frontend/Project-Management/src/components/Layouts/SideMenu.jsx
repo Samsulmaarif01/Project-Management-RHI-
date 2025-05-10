@@ -38,7 +38,7 @@ const SideMenu = ({ activeMenu }) => {
             <img
               src={user.profileImageUrl}
               alt="Profile Image"
-              className="w-20 h-20 bg-slate-400 rounded-full object-cover"
+              className="w-20 h-20 bg-slate-400 rounded-full"
             />
           ) : (
             <div className="w-20 h-20 bg-slate-400 rounded-full flex items-center justify-center text-white text-lg">
@@ -47,8 +47,8 @@ const SideMenu = ({ activeMenu }) => {
           )}
         </div>
 
-        {user?.role && (
-          <div className="text-[10px] font-medium bg-blue-100 text-blue-800 px-3 py-0.5 rounded mt-1 capitalize">
+        {user?.role === "admin" && (
+          <div className="text-[10px] font-medium text-white bg-primary px-3 py-0.5 rounded mt-1">
             {user.role}
           </div>
         )}
@@ -64,10 +64,10 @@ const SideMenu = ({ activeMenu }) => {
           <button
             key={`menu_${index}`}
             className={`w-full flex items-center gap-4 text-[15px] ${
-              activeMenu === item.label
-                ? "text-primary bg-gradient-to-r from-blue-50/40 to-blue-100/50 border-r-4 border-primary"
+              activeMenu === item.label 
+                ? "text-primary bg-liniear-to-r from-blue-50/40 to-blue-100/50 border-r-3"
                 : "text-gray-700 hover:bg-gray-100"
-            } py-3 px-6 mb-3 cursor-pointer transition-all`}
+            } py-3 px-6 mb-3 cursor-pointer`}
             onClick={() => handleClick(item.path)}
           >
             <item.icon className="text-xl" />
