@@ -3,74 +3,72 @@ import DashboardLayout from "../../components/Layouts/DashboardLayout";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATH } from "../../utils/apiPath";
 import toast from "react-hot-toast";
+import { LuFileSpreadsheet } from "react-icons/lu";
+import UserCard from "../../components/Cards/UserCard";
 
 const ManageUsers = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
 
-  const fetchUsers = async () => {
+  const getAllUsers = async () => {
     try {
-      setLoading(true);
-      const res = await axiosInstance.get(API_PATH.USER.GET_ALL);
-      setUsers(res.data || []);
-    } catch (err) {
-      toast.error("Gagal memuat data pengguna");
-    } finally {
-      setLoading(false);
+      const response = await axiosInstance.get(API_PATH.USERS.GET_ALL_USERS);
+      if (response.data?.length > 0) {
+        setAllUsers(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
     }
   };
 
+  // Download task report
+  const handleDownloadReport = async () => {
+    try {
+      const response = await axiosInstance.get(API_PATH.REPORT.EXPORT_USER, {
+        responseType: "blob",
+    });
+
+    // Create a url for the blob
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "user_details.xlsx");
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error downloading expense details:", error);
+    toast.error("Failed to download expense details. Please try again.");
+  }
+};
+
   useEffect(() => {
-    fetchUsers();
+    getAllUsers();
+
+    return () => {};
   }, []);
 
   return (
-    <DashboardLayout activeMenu="Manage Users">
-      <div className="card my-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl md:text-2xl font-semibold">
-            Manajemen Pengguna
-          </h2>
-        </div>
+    <DashboardLayout activeMenu="Team Member">
+      <div className="mt-5 mb-10">
+        <div className="flex md:flex-row md:items-center justify-between">
+          <h2 className="text-xl md:text-xl font-medium">Team Members</h2>
 
-        {loading ? (
-          <p className="text-sm text-gray-400">Memuat data...</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="table-auto w-full text-left border-collapse mt-3">
-              <thead>
-                <tr className="bg-slate-100 text-xs uppercase text-slate-600">
-                  <th className="px-4 py-2">No</th>
-                  <th className="px-4 py-2">Nama</th>
-                  <th className="px-4 py-2">Email</th>
-                  <th className="px-4 py-2">Role</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan="4"
-                      className="text-center py-4 text-sm text-slate-400"
-                    >
-                      Tidak ada data pengguna.
-                    </td>
-                  </tr>
-                ) : (
-                  users.map((user, index) => (
-                    <tr key={user._id} className="border-t text-sm">
-                      <td className="px-4 py-2">{index + 1}</td>
-                      <td className="px-4 py-2">{user.name}</td>
-                      <td className="px-4 py-2">{user.email}</td>
-                      <td className="px-4 py-2 capitalize">{user.role}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+          <button className="flex md:flex download-btn" 
+            onClick={handleDownloadReport}
+          >
+            <LuFileSpreadsheet className="text-lg" />
+            Download Report
+            </button>
           </div>
-        )}
-      </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            {allUsers?.map((user) => (
+              <UserCard key={user._id} userInfo={user} />
+            ))}
+          </div>
+        </div>
     </DashboardLayout>
   );
 };
