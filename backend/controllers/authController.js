@@ -14,9 +14,9 @@ const generateToken = (userId) => {
 // @access Public
 
 const registerUser = async (req, res) => {
-  try {
+    try {
     const { name, email, password, profileImageUrl, AdminInviteToken } =
-      req.body;
+    req.body;
 
     // check if user already exists
     const userExists = await User.findOne({ email });

@@ -1,5 +1,5 @@
 const { model } = require('mongoose');
-// const Task = require('../models/task');
+const Task = require('../models/Task');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
@@ -12,10 +12,15 @@ const getUsers = async (req, res) => {
 
         // add task count to each user
         const usersWithTaskCount = await Promise.all(users.map(async (user) => {
-            const pendingTask = await Task.countDocuments({ assignedTo :user._id, status: 'pending' });
-            const inProgressTask = await Task.countDocuments({ assignedTo :user._id, status: 'inprogress' });
-            const completeTask = await Task.countDocuments({ assignedTo :user._id, status: 'completed' });
-            return { ...user._doc, pendingTask, inProgressTask, completeTask };
+            const pendingTask = await Task.countDocuments({ assignedTo :user._id, status: 'Pending' });
+            const inProgressTask = await Task.countDocuments({ assignedTo :user._id, status: 'In Progress' });
+            const completedTask = await Task.countDocuments({ assignedTo :user._id, status: 'Completed' });
+            return { 
+                ...user._doc, 
+                pendingTask, 
+                inProgressTask, 
+                completedTask 
+            };
         }));
         res.json(usersWithTaskCount);
     } catch (error) {

@@ -6,7 +6,6 @@ const storage = multer.diskStorage({
         cb(null, 'uploads/'); // folder tempat menyimpan file
     },
     filename: (req, file, cb) => {
-        // const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, `${Date.now()}-${file.originalname}`)// nama file yang disimpan
     }
 });
@@ -20,8 +19,6 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-const upload = multer({
-    storage, fileFilter,
-})
+const upload = multer({ storage, fileFilter });
 
 module.exports = upload;

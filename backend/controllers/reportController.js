@@ -36,7 +36,7 @@ const exportTasksReport = async (req, res) => {
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) {
-        res.status(500).json({ message: "error exporting task", error: error.message });
+        res.status(500).json({ message: "Error Exporting Task", error: error.message });
     }
 };
 
@@ -66,11 +66,11 @@ const exportUsersReport = async (req, res) => {
                         userTaskMap[assignedUser._id].taskCount += 1;
         
                         // Menangani status tugas sesuai kondisi yang benar
-                        if (task.status === 'pending') {
+                        if (task.status === 'Pending') {
                             userTaskMap[assignedUser._id].pendingTask += 1;
-                        } else if (task.status === 'in progress') {
+                        } else if (task.status === 'In Progress') {
                             userTaskMap[assignedUser._id].inProgressTask += 1;  
-                        } else if (task.status === 'completed') {
+                        } else if (task.status === 'Completed') {
                             userTaskMap[assignedUser._id].completedTask += 1;  
                         }
                     }
@@ -79,23 +79,30 @@ const exportUsersReport = async (req, res) => {
         });
         
         const workbook = new exceljs.Workbook();
-        const worksheet = workbook.addWorksheet('Users Report');
+        const worksheet = workbook.addWorksheet('Users Task Report');
         worksheet.columns = [
             { header: 'User Name', key: 'name', width: 30 },
             { header: 'Email', key: 'email', width: 50 },
             { header: 'Total Assigned Task', key: 'taskCount', width: 20 },
             { header: 'Pending Task', key: 'pendingTask', width: 20 },
-            { header: 'In Progress Task', key: 'inProgressTask', width: 20 },
+            { 
+                header: 'In Progress Task', 
+                key: 'inProgressTask', 
+                width: 20 },
             { header: 'Completed Task', key: 'completedTask', width: 20 },
         ];
         Object.values(userTaskMap).forEach(user => {
             worksheet.addRow(user);
         });
         
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename=users_report_${Date.now()}.xlsx`);
-        await workbook.xlsx.write(res);
-        res.end();
+        res.setHeader('Content-Type', 
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 
+            `attachment; filename=users_report_${Date.now()}.xlsx`);
+
+        return workbook.xlsx.write(res).then(() =>{
+            res.end();
+        });
     } catch (error) {
         res.status(500).json({ message: "error exporting task", error: error.message });
     }
