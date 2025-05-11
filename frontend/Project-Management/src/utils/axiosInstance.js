@@ -32,11 +32,12 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response) {
       if (error.response.status === 401) {
-        alert("Sesi anda telah habis. Silakan login kembali.");
-        localStorage.removeItem("token");
-        localStorage.removeItem("user-data");
         window.location.href = "/login";
-      }      
+      } else if (error.response.status === 500) {
+        console.error("Server error. Please try again.");
+      } 
+    } else if (error.code === "ECONNABORTED") {
+        console.error("Request timeout. Please try again.");
     }
     return Promise.reject(error);
   }

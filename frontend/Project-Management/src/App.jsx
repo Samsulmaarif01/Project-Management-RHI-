@@ -7,18 +7,20 @@ import {
   Navigate,
 } from "react-router-dom";
 import Dashboard from "./pages/Admin/Dashboard";
+import Login from "./pages/Auth/Login";
+import Signup from "./pages/Auth/Signup";
 import ManageTasks from "./pages/Admin/ManageTasks";
 import CreateTask from "./pages/Admin/CreateTask";
 import ManageUsers from "./pages/Admin/ManageUsers";
+
 import UserDashboard from "./pages/User/UserDashboard";
 import MyTask from "./pages/User/MyTask";
-import ViewTaskDetail from "./pages/User/ViewTaskDetail";
-import Login from "./pages/Auth/Login";
-import Signup from "./pages/Auth/Signup";
+import ViewTaskDetails from "./pages/User/ViewTaskDetail";
+
 import PrivateRoute from "./routes/PrivateRoute";
 import UserProvider, { UserContext } from "./context/userContext";
-import SuspenseLoader from "./components/SuspenseLoader";
 import { Toaster } from "react-hot-toast";
+
 
 const App = () => {
   return (
@@ -43,12 +45,12 @@ const App = () => {
               <Route path="/user/dashboard" element={<UserDashboard />} />
               <Route path="/user/tasks" element={<MyTask />} />
               <Route
-                path="/user/task-details/:id"
-                element={<ViewTaskDetail />}
+                path="/user/tasks-details/:id"
+                element={<ViewTaskDetails />}
               />
             </Route>
 
-            {/* default route */}
+            {/* Default Route*/}
             <Route path="/" element={<Root />} />
           </Routes>
         </Router>
@@ -56,7 +58,7 @@ const App = () => {
 
       <Toaster
         toastOptions={{
-          className:"",
+          className: "",
           style: {
             fontSize: "13px",
           },
@@ -74,12 +76,8 @@ const Root = () => {
   if (loading) return <Outlet />;
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" />;
   }
 
-  return user.role === "admin" ? (
-    <Navigate to="/admin/dashboard" />
-  ) : (
-    <Navigate to="/user/dashboard" />
-  );
+  return user.role === "admin" ? <Navigate to="/admin/dashboard" /> : <Navigate to="/user/dashboard" />;
 };

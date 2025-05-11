@@ -14,20 +14,9 @@ const Login = () => {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const payload = { email, password };
 
-  const { updateUser } = useContext(UserContext); // Ambil fungsi updateUser dari context
+  const { updateUser } = useContext(UserContext) // Ambil fungsi updateUser dari context
   const navigate = useNavigate();
-
-  const handleNavigate = (role) => {
-    if (role === "admin") {
-      navigate("/admin/dashboard"); // Ganti dengan route admin dashboard
-    } else if (role === "member") {
-      navigate("/user/dashboard"); // Ganti dengan route user dashboard
-    } else {
-      setError("Role tidak dikenali");
-    }
-  };
 
   // Fungsi untuk menangani login
   const handleLogin = async (e) => {
@@ -47,16 +36,22 @@ const Login = () => {
 
     // melakukan login ke API
     try {
-      const response = await axiosInstance.post(API_PATH.AUTH.LOGIN, payload);
-      const data = response.data;
+      const response = await axiosInstance.post(API_PATH.AUTH.LOGIN, {
+        email,
+        password,
+      });
 
-      if (response.status === 200) {
-        localStorage.setItem("token", data.token); // Simpan token ke localStorage
-        localStorage.setItem("user-data", JSON.stringify(data));
-        updateUser(data); // Panggil fungsi untuk memperbarui user
+      const { token, role } = response.data;
 
-        // mengrah ke halaman dashboard sesuai role
-        handleNavigate(data?.role);
+      if (token) {
+        localStorage.setItem("token", token);
+        updateUser(response.data); // Simpan token ke localStorage
+
+          if (role === "admin") {
+            navigate("/admin/dashboard"); // Ganti dengan route admin dashboard
+          } else {
+            navigate("/user/dashboard"); // Ganti dengan route user dashboard
+          };
       }
     } catch (error) {
       if (error.response && error.response.data.message) {
@@ -73,16 +68,6 @@ const Login = () => {
     }
   };
   
-  
-
-  const checkData = JSON.parse(localStorage.getItem("user-data" || "{}"));
-
-  // useEffect(() => {
-  //   if (checkData) {
-  //     handleNavigate(checkData.role);
-  //   }
-  // }, []);
-
   return (
     <AuthLayout>
       <div className="lg:w-[70%] h-3/4 md:h-full flex flex-col justify-center items-center">
@@ -139,7 +124,7 @@ const Login = () => {
             Login
           </button>
 
-          <p className="text-xs text-slate-700 mt-4">
+          <p className="text-xs text-slate-800 mt-3">
             Belum punya akun?{" "}
             <Link to="/signup" className="text-blue-600 hover:underline">
               Daftar Sekarang

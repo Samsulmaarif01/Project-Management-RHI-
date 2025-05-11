@@ -9,24 +9,25 @@ const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const accessToken = localStorage.getItem("token");
+    if (user) return;
 
+      const accessToken = localStorage.getItem("token");
       if (!accessToken) {
         setLoading(false);
         return;
       }
 
-      try {
-        const response = await axiosInstance.get(API_PATH.AUTH.GET_PROFILE);
-        setUser(response.data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        clearUser();
-      } finally {
-        setLoading(false);
-      }
-    };
+      const fetchUser = async () => {
+        try {
+          const response = await axiosInstance.get(API_PATH.AUTH.GET_PROFILE);
+          setUser(response.data);
+        } catch (error) {
+          console.error("User not authenticated:", error);
+          clearUser();
+        } finally {
+          setLoading(false);
+        }
+      };
 
     fetchUser();
   }, []);
@@ -34,7 +35,6 @@ const UserProvider = ({ children }) => {
   const updateUser = (userData) => {
     setUser(userData);
     localStorage.setItem("token", userData.token);
-    localStorage.setItem("user-data", JSON.stringify(userData)); // tambahkan ini
     setLoading(false);
   };
   
@@ -43,12 +43,6 @@ const UserProvider = ({ children }) => {
     localStorage.removeItem("token");
   };
 
-  const userData = JSON.parse(localStorage.getItem("user-data" || "{}"));
-  useEffect(() => {
-    if (userData) {
-      setUser(userData);
-    }
-  }, []);
 
   return (
     <UserContext.Provider value={{ user, loading, updateUser, clearUser }}>
