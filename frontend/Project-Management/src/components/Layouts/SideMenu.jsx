@@ -47,9 +47,9 @@ const SideMenu = ({ activeMenu }) => {
           )}
         </div>
 
-        {user?.role === "admin" && (
+        {user?.position && (
           <div className="text-[10px] font-medium text-white bg-primary px-3 py-0.5 rounded mt-1">
-            {user.role}
+            {user.position}
           </div>
         )}
 
@@ -64,7 +64,7 @@ const SideMenu = ({ activeMenu }) => {
           <button
             key={`menu_${index}`}
             className={`w-full flex items-center gap-4 text-[15px] ${
-              activeMenu === item.label 
+              activeMenu === item.label
                 ? "text-primary bg-liniear-to-r from-blue-50/40 to-blue-100/50 border-r-3"
                 : "text-gray-700 hover:bg-gray-100"
             } py-3 px-6 mb-3 cursor-pointer`}
