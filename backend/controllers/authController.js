@@ -15,7 +15,7 @@ const generateToken = (userId) => {
 
 const registerUser = async (req, res) => {
     try {
-    const { name, email, password, profileImageUrl, AdminInviteToken } =
+    const { name, email, password, profileImageUrl, AdminInviteToken, position } =
     req.body;
 
     // check if user already exists
@@ -43,6 +43,7 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       profileImageUrl,
       role,
+      position,
     });
 
     // mengembalikan data user dengan token jwt
@@ -52,6 +53,7 @@ const registerUser = async (req, res) => {
       email: user.email,
       profileImageUrl: user.profileImageUrl,
       role: user.role,
+      position: user.position,
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -85,6 +87,7 @@ const loginUser = async (req, res) => {
       email: user.email,
       profileImageUrl: user.profileImageUrl,
       role: user.role,
+      position: user.position,
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -122,6 +125,7 @@ const updateUserProfile = async (req, res) => {
 
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
+    user.position = req.body.position || user.position;
 
     if (req.body.password) {
       const salt = await bcrypt.genSalt(10);
@@ -133,8 +137,9 @@ const updateUserProfile = async (req, res) => {
       _id: updatedUser._id,
       name: updatedUser.name,
       email: updatedUser.email,
-      // profileImageUrl: updatedUser.profileImageUrl, // Anda bisa menambahkan ini jika diperlukan
+      profileImageUrl: updatedUser.profileImageUrl, // Anda bisa menambahkan ini jika diperlukan
       role: updatedUser.role,
+      position: updatedUser.position,
       token: generateToken(updatedUser._id),
     });
   } catch (error) {
