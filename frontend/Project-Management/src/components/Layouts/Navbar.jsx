@@ -20,7 +20,7 @@ const Navbar = ({ activeMenu }) => {
         )}
       </button>
 
-      <h2 className="text-lg font-medium text-black">Project Management</h2>
+      <h2 className="text-lg font-medium text-black">Project Management RHI</h2>
 
       {/* Sidebar Mobile */}
       {openSideMenu && (
