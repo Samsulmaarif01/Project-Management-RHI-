@@ -139,12 +139,42 @@ const ViewTaskDetails = () => {
                 </label>
 
                 {task?.todoChecklist?.map((item, index) => (
-                  <TodoCheckList
-                    key={`todo_${index}`}
-                    text={item.text}
-                    isChecked={item?.completed}
-                    onChange={() => updateTodoChecklist(index)}
-                  />
+                  <div key={`todo_${index}`} className="mb-4">
+                    <TodoCheckList
+                      text={item.text}
+                      isChecked={item?.completed}
+                      onChange={() => updateTodoChecklist(index)}
+                    />
+                    <textarea
+                      className="w-full mt-1 p-2 border border-gray-300 rounded-md text-sm resize-none"
+                      placeholder="Add a note or describe the problem..."
+                      value={item.note || ""}
+                      onChange={(e) => {
+                        const newNote = e.target.value;
+                        const updatedTodoChecklist = [...task.todoChecklist];
+                        updatedTodoChecklist[index] = {
+                          ...updatedTodoChecklist[index],
+                          note: newNote,
+                        };
+                        setTask({ ...task, todoChecklist: updatedTodoChecklist });
+                      }}
+                      onBlur={async (e) => {
+                        const updatedTodoChecklist = [...task.todoChecklist];
+                        try {
+                          const response = await axiosInstance.put(
+                            API_PATH.TASK.UPDATE_TODO_CHECKLIST(task._id),
+                            { todoChecklist: updatedTodoChecklist }
+                          );
+                          if (response.status === 200) {
+                            setTask(response.data.task);
+                          }
+                        } catch (error) {
+                          console.error("Failed to update todo note", error);
+                        }
+                      }}
+                      rows={3}
+                    />
+                  </div>
                 ))}
               </div>
 

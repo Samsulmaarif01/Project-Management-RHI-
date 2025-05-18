@@ -15,15 +15,27 @@ const getTasks = async (req, res) => {
     let tasks;
 
     if (req.user.role === "admin") {
-      tasks = await Task.find(filter).populate(
-        "assignedTo",
-        "name email profileImageUrl"
-      );
+      tasks = await Task.find(filter).populate([
+        {
+          path: "assignedTo",
+          select: "name email profileImageUrl",
+        },
+      {
+          path: "assignedBy",
+          select: "name email profileImageUrl",
+        },
+      ]);
     } else {
-      tasks = await Task.find({ ...filter, assignedTo: req.user._id }).populate(
-        "assignedTo",
-        "name email profileImageUrl"
-      );
+      tasks = await Task.find({ ...filter, assignedTo: req.user._id }).populate([
+        {
+          path: "assignedTo",
+          select: "name email profileImageUrl",
+        },
+      {
+          path: "assignedBy",
+          select: "name email profileImageUrl",
+        },
+      ]);
     }
 
     //   add completeTodoCount to each task
@@ -104,18 +116,52 @@ const createTask = async (req, res) => {
       assignedTo,
       attachments,
       todoChecklist,
+      location,
     } = req.body;
     if (!Array.isArray(assignedTo)) {
       return res
         .status(400)
-        .json({ message: "asignedTo must be an array of user IDs" });
+        .json({ message: "assignedTo must be an array of user IDs" });
     }
+
+    // Set assignedBy to current user
+    const assignedBy = req.user._id;
+
+    // Check if any assigned user already has a task assigned by another admin
+    const TaskAssignmentRequest = require("./taskAssignmentController").TaskAssignmentRequest;
+    const existingAssignments = await Task.findOne({
+      assignedTo: { $in: assignedTo },
+      assignedBy: { $ne: assignedBy },
+    });
+
+    if (existingAssignments) {
+      // Create assignment requests for users assigned by other admins
+      const taskAssignmentController = require("./taskAssignmentController");
+      for (const userId of assignedTo) {
+        const userHasTask = await Task.findOne({
+          assignedTo: userId,
+          assignedBy: { $ne: assignedBy },
+        });
+        if (userHasTask) {
+          await taskAssignmentController.createTaskAssignmentRequest({
+            body: { taskId: existingAssignments._id, assignedToUserId: userId },
+            user: req.user,
+          }, {
+            status: () => ({ json: () => {} }),
+          });
+        }
+      }
+      return res.status(202).json({ message: "Task assignment requests created for approval" });
+    }
+
     const task = await Task.create({
       title,
       description,
       priority,
       dueDate,
       assignedTo,
+      assignedBy,
+      location,
       createdBy: req.user._id,
       todoChecklist,
       attachments,
@@ -136,21 +182,57 @@ const updateTask = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
+    // Validate assigned users exist if provided
+    if (req.body.assignedTo) {
+      if (!Array.isArray(req.body.assignedTo)) {
+        return res
+          .status(400)
+          .json({ message: "assignedTo must be an array of user IDs" });
+      }
+
+      // Check if all assigned users exist
+      const usersExist = await User.find({ _id: { $in: req.body.assignedTo } });
+      if (usersExist.length !== req.body.assignedTo.length) {
+      // Filter out invalid userIds (null, undefined, non-string/object)
+      const validUserIds = req.body.assignedTo.filter(
+        (id) =>
+          id !== null &&
+          id !== undefined &&
+          (typeof id === "string" || typeof id === "object")
+      );
+
+      const missingUsers = validUserIds.filter(
+        (userId) =>
+          !usersExist.some(
+            (user) => user._id.toString() === userId.toString()
+          )
+      );
+        return res.status(404).json({
+          message: "One or more assigned users not found",
+          missingUsers,
+        });
+      }
+    }
+
+    // Update task fields
     task.title = req.body.title || task.title;
     task.description = req.body.description || task.description;
     task.priority = req.body.priority || task.priority;
     task.dueDate = req.body.dueDate || task.dueDate;
     task.todoChecklist = req.body.todoChecklist || task.todoChecklist;
     task.attachments = req.body.attachments || task.attachments;
+    task.assignedTo = req.body.assignedTo || task.assignedTo;
 
-    if (req.user.assignedTo) {
-      if (!Array.isArray(req.body.assignedTo)) {
-        return res
-          .status(400)
-          .json({ message: "asignedTo must be an array of user IDs" });
-      }
-      task.assignedTo = req.body.assignedTo;
+    // Update location if provided and valid
+    if (req.body.location && typeof req.body.location === 'object') {
+      const { lat, lng, address } = req.body.location;
+      task.location = {
+        lat: typeof lat === 'number' ? lat : task.location.lat,
+        lng: typeof lng === 'number' ? lng : task.location.lng,
+        address: typeof address === 'string' ? address : task.location.address,
+      };
     }
+
     const updatedTask = await task.save();
     res.json({ message: "Task updated successfully", updatedTask });
   } catch (error) {
@@ -398,6 +480,16 @@ const getUserDashboardData = async (req, res) => {
     const recentTasks = await Task.find({ assignedTo: userId })
       .sort({ createdAt: -1 })
       .limit(10)
+      .populate([
+        {
+          path: "assignedBy",
+          select: "name email",
+        },
+        {
+          path: "assignedTo",
+          select: "name email profileImageUrl",
+        },
+      ])
       .select("title status priority dueDate createdAt");
 
     res.status(200).json({

@@ -9,6 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const reportRoutes = require("./routes/reportRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
@@ -27,11 +28,20 @@ connectDB();
 // middleware
 app.use(express.json());
 
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
+
+const taskAssignmentRoutes = require("./routes/taskAssignmentRoutes");
+
 // routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/upload", uploadRoutes);
+app.use("/api/task-assignment", taskAssignmentRoutes);
 
 // serve upload folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

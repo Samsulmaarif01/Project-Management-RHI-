@@ -9,6 +9,10 @@ const todoSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  note: {
+    type: String,
+    default: "",
+  },
 });
 
 const taskSchema = new mongoose.Schema(
@@ -40,6 +44,21 @@ const taskSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    assignedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    location: {
+      lat: {
+        type: Number,
+      },
+      lng: {
+        type: Number,
+      },
+      address: {
+        type: String,
+      },
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

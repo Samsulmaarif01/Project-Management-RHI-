@@ -10,7 +10,7 @@ import { addThousandsSeparator } from "../../utils/helper";
 import InfoCard from "../../components/Cards/InfoCard";
 import { LuArrowRight } from "react-icons/lu";
 import TaskListTable from "../../components/TaskListTable";
-import CustomPieChart from "../../components/Charts/CustomPieChart";  
+import CustomPieChart from "../../components/Charts/CustomPieChart";
 import CustomBarChart from "../../components/Charts/CustomBarChart";
 
 const COLORS = ["#A855F7", "#06B6D4", "#22C55E"];

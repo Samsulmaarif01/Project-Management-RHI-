@@ -28,6 +28,14 @@ export const API_PATH = {
     UPDATE_TODO_CHECKLIST: (taskId) => `${BASE_URL}/api/tasks/${taskId}/todo`,
   },
 
+  TASK_ASSIGNMENT: {
+    CHECK_HIGH_PRIORITY_TASKS: `${BASE_URL}/api/task-assignment/check-high-priority-tasks`,
+    GET_USER_REQUESTS: `${BASE_URL}/api/task-assignment/user-requests`,
+    RESPOND_TO_REQUEST: (requestId) =>
+      `${BASE_URL}/api/task-assignment/respond/${requestId}`,
+    GET_ALL_REQUESTS: `${BASE_URL}/api/task-assignment/all-requests`,
+  },
+
   REPORT: {
     EXPORT_TASK: `${BASE_URL}/api/reports/export/tasks`,
     EXPORT_USER: `${BASE_URL}/api/reports/export/users`,

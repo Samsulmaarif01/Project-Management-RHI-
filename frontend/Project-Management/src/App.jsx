@@ -12,14 +12,17 @@ import Signup from "./pages/Auth/Signup";
 import ManageTasks from "./pages/Admin/ManageTasks";
 import CreateTask from "./pages/Admin/CreateTask";
 import ManageUsers from "./pages/Admin/ManageUsers";
+import TaskAssignmentMailboxAdmin from "./pages/Admin/TaskAssignmentMailbox";
 
 import UserDashboard from "./pages/User/UserDashboard";
 import MyTask from "./pages/User/MyTask";
 import ViewTaskDetails from "./pages/User/ViewTaskDetail";
+import UserTaskAssignmentMailbox from "./pages/User/UserTaskAssignmentMailbox";
 
 import PrivateRoute from "./routes/PrivateRoute";
 import UserProvider, { UserContext } from "./context/userContext";
 import { Toaster } from "react-hot-toast";
+
 
 
 const App = () => {
@@ -38,6 +41,10 @@ const App = () => {
               <Route path="/admin/tasks" element={<ManageTasks />} />
               <Route path="/admin/create-task" element={<CreateTask />} />
               <Route path="/admin/users" element={<ManageUsers />} />
+              <Route
+                path="/admin/task-assignment-mailbox"
+                element={<TaskAssignmentMailboxAdmin />}
+              />
             </Route>
 
             {/* routes user*/}
@@ -47,6 +54,10 @@ const App = () => {
               <Route
                 path="/user/tasks-details/:id"
                 element={<ViewTaskDetails />}
+              />
+              <Route
+                path="/user/task-assignment-mailbox"
+                element={<UserTaskAssignmentMailbox />}
               />
             </Route>
 

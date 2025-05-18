@@ -1,12 +1,29 @@
 const express = require('express');
 const { protect, adminOnly } = require('../middlewares/authMiddleware');
-const { getUsers, getUserById, deleteUser } = require('../controllers/userController');
+const roleVerification = require('../middlewares/roleVerification');
+const {
+  getUsers,
+  getUserById,
+  updateUserPosition,
+  updateUserProfilePhoto,
+} = require('../controllers/userController');
 
 const router = express.Router();
 
 // user management routes
-router.get('/', protect, adminOnly, getUsers);
+// Allow all authenticated users to get users for task assignment
+router.get('/', protect, getUsers);
 router.get('/:id', protect, getUserById);
-// router.delete('/:id', protect, adminOnly, deleteUser); 
+router.put(
+  '/:id/position',
+  protect,
+  roleVerification.superadminOnly,
+  updateUserPosition
+);
+router.put(
+  '/:id/profile-photo',
+  protect,
+  updateUserProfilePhoto
+);
 
 module.exports = router;

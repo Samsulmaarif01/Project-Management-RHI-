@@ -14,6 +14,71 @@ import AddAttachmentsInput from "../../components/Inputs/AddAttachmentsInput";
 import Modal from "../../components/modal";
 import DeleteAlert from "../../components/DeleteAlert";
 
+// Import React Leaflet components for map
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// Fix default icon issue with Leaflet in React
+import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
+import iconUrl from "leaflet/dist/images/marker-icon.png";
+import shadowUrl from "leaflet/dist/images/marker-shadow.png";
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
+});
+
+import { useMap } from "react-leaflet";
+
+const LocationSelector = ({ location, setLocation }) => {
+  const map = useMapEvents({
+    click(e) {
+      setLocation({
+        lat: e.latlng.lat,
+        lng: e.latlng.lng,
+        address: "",
+      });
+    },
+  });
+
+  useEffect(() => {
+    const fetchAddress = async () => {
+      if (location.lat && location.lng && !location.address) {
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.lat}&lon=${location.lng}`
+          );
+          const data = await response.json();
+          if (data && data.display_name) {
+            setLocation((prev) => ({
+              ...prev,
+              address: data.display_name,
+            }));
+          }
+        } catch (error) {
+          console.error("Error reverse geocoding:", error);
+        }
+      }
+    };
+    fetchAddress();
+  }, [location.lat, location.lng, location.address, setLocation]);
+
+  useEffect(() => {
+    if (location.lat && location.lng) {
+      map.setView([location.lat, location.lng], map.getZoom(), {
+        animate: true,
+      });
+    }
+  }, [location.lat, location.lng, map]);
+
+  return location.lat && location.lng ? (
+    <Marker position={[location.lat, location.lng]}></Marker>
+  ) : null;
+};
+
 const CreateTask = () => {
   const location = useLocation();
   const { taskId } = location.state || {};
@@ -23,10 +88,15 @@ const CreateTask = () => {
     title: "",
     description: "",
     priority: "Low",
-    dueDate: [],
-    assignedTo: [],   
+    dueDate: "",
+    assignedTo: [],
     todoChecklist: [],
     attachments: [],
+    location: {
+      lat: null,
+      lng: null,
+      address: "",
+    },
   });
 
   const [currentTask, setCurrentTask] = useState(null);
@@ -34,6 +104,10 @@ const CreateTask = () => {
   const [loading, setLoading] = useState(false);
 
   const [openDeleteAlert, setOpenDeleteAlert] = useState(false);
+  const [openConfirmAssignModal, setOpenConfirmAssignModal] = useState(false);
+  const [pendingAssignUsers, setPendingAssignUsers] = useState([]);
+  const [proceedCreate, setProceedCreate] = useState(false);
+  const [openSquareNotification, setOpenSquareNotification] = useState(false);
 
   const handleValueChange = (key, value) => {
     setTaskData((prevData) => ({
@@ -42,8 +116,51 @@ const CreateTask = () => {
     }));
   };
 
+  const updateLocation = (newLocation) => {
+    setTaskData((prevData) => ({
+      ...prevData,
+      location: {
+        ...prevData.location,
+        ...newLocation,
+      },
+    }));
+  };
+
+  const handleLocationChange = async (key, value) => {
+    if (key === "address") {
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            value
+          )}`
+        );
+        const data = await response.json();
+        if (data && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lng = parseFloat(data[0].lon);
+          const address = data[0].display_name || `${lat}, ${lng}`;
+
+          setTaskData((prev) => ({
+            ...prev,
+            location: { lat, lng, address },
+          }));
+          return;
+        }
+      } catch (error) {
+        console.error("Geocoding error:", error);
+      }
+    }
+
+    setTaskData((prev) => ({
+      ...prev,
+      location: {
+        ...prev.location,
+        [key]: value,
+      },
+    }));
+  };
+
   const clearData = () => {
-    // reset form
     setTaskData({
       title: "",
       description: "",
@@ -52,10 +169,14 @@ const CreateTask = () => {
       assignedTo: [],
       todoChecklist: [],
       attachments: [],
+      location: {
+        lat: null,
+        lng: null,
+        address: "",
+      },
     });
   };
 
-  //  membuat Task
   const createTask = async () => {
     setLoading(true);
 
@@ -65,31 +186,49 @@ const CreateTask = () => {
         completed: false,
       }));
 
-      const respone = await axiosInstance.post(API_PATH.TASK.CREATE_TASK, {
+      const response = await axiosInstance.post(API_PATH.TASK.CREATE_TASK, {
         ...taskData,
         todoChecklist: todoList,
         dueDate: new Date(taskData.dueDate).toISOString(),
+        location: {
+          lat: taskData.location.lat,
+          lng: taskData.location.lng,
+          address: taskData.location.address,
+        },
       });
 
-      toast.success("Task Created Succesfully");
+      toast.success("Task Created Successfully");
 
       clearData();
+      setProceedCreate(false);
+      setPendingAssignUsers([]);
+      setOpenSquareNotification(false);
     } catch (error) {
       console.error("Error creating task:", error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to create task");
+      }
       setLoading(false);
     } finally {
       setLoading(false);
     }
   };
 
-  // update Task
   const updateTask = async () => {
     setLoading(true);
 
     try {
       const todoList = taskData.todoChecklist?.map((item) => {
         const prevTodoCheckList = currentTask?.todoChecklist || [];
-        const matchedTask = prevTodoCheckList.find((task) => task.text == item);
+        const matchedTask = prevTodoCheckList.find(
+          (task) => task.text === item
+        );
 
         return {
           text: item,
@@ -97,27 +236,75 @@ const CreateTask = () => {
         };
       });
 
-      const response = await axiosInstance.put (
+      const assignedUserIds = taskData.assignedTo
+        ?.map((user) => {
+          if (typeof user === "string") return user;
+          if (user && user._id) return user._id;
+          return null;
+        })
+        .filter((id) => id !== null);
+
+      const response = await axiosInstance.put(
         API_PATH.TASK.UPDATE_TASK(taskId),
         {
           ...taskData,
           dueDate: new Date(taskData.dueDate).toISOString(),
           todoChecklist: todoList,
+          assignedTo: assignedUserIds,
+          location: {
+            lat: taskData.location.lat,
+            lng: taskData.location.lng,
+            address: taskData.location.address,
+          },
         }
       );
 
-      toast.success("Task Updated Succesfully");
+      toast.success("Task Updated Successfully");
+      setOpenSquareNotification(false);
     } catch (error) {
-      console.error("Error creating task:", error);
+      console.error("Error updating task:", error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to update task");
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateTodoChecklist = async (newTodoList) => {
+    if (!taskId) return;
+    try {
+      const todoList = newTodoList.map((item) => {
+        const matchedTask = currentTask?.todoChecklist?.find(
+          (task) => task.text === item
+        );
+        return {
+          text: item,
+          completed: matchedTask ? matchedTask.completed : false,
+        };
+      });
+
+      await axiosInstance.put(API_PATH.TASK.UPDATE_TODO_CHECKLIST(taskId), {
+        todoChecklist: todoList,
+      });
+
+      setTaskData((prev) => ({ ...prev, todoChecklist: newTodoList }));
+      setCurrentTask((prev) => ({ ...prev, todoChecklist: todoList }));
+    } catch (error) {
+      console.error("Error updating todo checklist:", error);
+      toast.error("Failed to update todo checklist");
     }
   };
 
   const handleSubmit = async () => {
     setError(null);
 
-    // Input validation
     if (!taskData.title.trim()) {
       setError("Title is required.");
       return;
@@ -130,27 +317,96 @@ const CreateTask = () => {
       setError("Due date is required.");
       return;
     }
-
-
     if (taskData.assignedTo?.length === 0) {
       setError("Task not assigned to any member.");
       return;
     }
-
     if (taskData.todoChecklist?.length === 0) {
-      setError("Add atleast one todo task.");
+      setError("Add at least one todo task.");
       return;
+    }
+    if (!taskData.location.address.trim()) {
+      setError("Location address is required.");
+      return;
+    }
+    if (!taskData.location.lat || !taskData.location.lng) {
+      setError("Please select a location on the map.");
+      return;
+    }
+
+    if (
+      !proceedCreate &&
+      taskData.priority === "High" &&
+      taskData.assignedTo.length > 0
+    ) {
+      try {
+        const response = await axiosInstance.post(
+          API_PATH.TASK_ASSIGNMENT.CHECK_HIGH_PRIORITY_TASKS,
+          {
+            userIds: taskData.assignedTo.map((user) =>
+              typeof user === "string" ? user : user._id
+            ),
+          }
+        );
+        const usersWithHighPriorityTasks = response.data.users || [];
+
+        if (usersWithHighPriorityTasks.length > 0) {
+          setPendingAssignUsers(usersWithHighPriorityTasks);
+          setOpenSquareNotification(true);
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking high priority tasks", error);
+        toast.error("Failed to check assigned users' task load");
+        return;
+      }
     }
 
     if (taskId) {
       updateTask();
-      return;
+    } else {
+      createTask();
     }
-
-    createTask();
   };
 
-  // mendapatkan info task dari id
+  const confirmAssign = () => {
+    setOpenSquareNotification(false);
+    setOpenConfirmAssignModal(true);
+  };
+
+  const cancelSquareNotification = () => {
+    setOpenSquareNotification(false);
+    setPendingAssignUsers([]);
+  };
+
+  const confirmAssignModal = () => {
+    setOpenConfirmAssignModal(false);
+    setProceedCreate(true);
+    handleSubmit();
+  };
+
+  const cancelAssignModal = () => {
+    setOpenConfirmAssignModal(false);
+    setPendingAssignUsers([]);
+    setProceedCreate(false);
+  };
+
+  const deleteTask = async () => {
+    try {
+      await axiosInstance.delete(API_PATH.TASK.DELETE_TASK(taskId));
+
+      setOpenDeleteAlert(false);
+      toast.success("Task deleted successfully");
+      navigate("/admin/tasks");
+    } catch (error) {
+      console.error(
+        "Error deleting task",
+        error.response?.data?.message || error.message
+      );
+      toast.error("Failed to delete task");
+    }
+  };
+
   const getTaskDetailsByID = async () => {
     try {
       const response = await axiosInstance.get(
@@ -161,48 +417,30 @@ const CreateTask = () => {
         const taskInfo = response.data;
         setCurrentTask(taskInfo);
 
-        setTaskData((prevState) => ({
+        setTaskData({
           title: taskInfo.title,
           description: taskInfo.description,
           priority: taskInfo.priority,
           dueDate: taskInfo.dueDate
             ? moment(taskInfo.dueDate).format("YYYY-MM-DD")
             : null,
-          assignedTo: taskInfo?.assignedTo?.map((item) => item?._Id) || [],
-          todoChecklist: 
-            taskInfo?.todoChecklist?.map((item) => item?.text) || [], 
+          assignedTo: taskInfo?.assignedTo?.map((item) => item?._id) || [],
+          todoChecklist:
+            taskInfo?.todoChecklist?.map((item) => item?.text) || [],
           attachments: taskInfo?.attachments || [],
-        }));
+          location: taskInfo?.location || { lat: null, lng: null, address: "" },
+        });
       }
     } catch (error) {
-      console.error("Error fetching users", error);
-    }
-  };
-
-  // menghapus task
-  const deleteTask = async () => {
-    try {
-      await axiosInstance.delete(API_PATH.TASK.DELETE_TASK(taskId));
-
-      setOpenDeleteAlert(false);
-      toast.success("Expense details deleted succesfully");
-      navigate('/admin/tasks')
-    } catch (error) {
-      console.error(
-        "Error deleting expense details",
-        error.respone?.data?.message || error.message
-      );
+      console.error("Error fetching task details", error);
     }
   };
 
   useEffect(() => {
     if (taskId) {
-      getTaskDetailsByID(taskId);
+      getTaskDetailsByID();
     }
-
-    return () => {};
   }, [taskId]);
-  
 
   return (
     <DashboardLayout activeMenu="Create Tasks">
@@ -227,8 +465,8 @@ const CreateTask = () => {
                 Task Title
               </label>
               <input
-                placeholder="Create App UI"
-                className="form-input"
+                placeholder="Enter Task Title"
+                className="form-input text-sm text-gray-700"
                 value={taskData.title}
                 onChange={({ target }) =>
                   handleValueChange("title", target.value)
@@ -240,12 +478,9 @@ const CreateTask = () => {
               <label className="text-xs font-medium text-slate-600">
                 Description
               </label>
-
               <textarea
-                name=""
-                id=""
-                placeholder="Describe task"
-                className="form-input"
+                placeholder="Enter Task Description"
+                className="form-input text-sm text-gray-700"
                 rows={4}
                 value={taskData.description}
                 onChange={({ target }) =>
@@ -271,15 +506,13 @@ const CreateTask = () => {
                 <label className="text-xs font-medium text-slate-600">
                   Due Date
                 </label>
-
                 <input
-                  placeholder="Create App UI"
                   className="form-input"
+                  type="date"
                   value={taskData.dueDate}
                   onChange={({ target }) =>
                     handleValueChange("dueDate", target.value)
                   }
-                  type="date"
                 />
               </div>
 
@@ -287,12 +520,11 @@ const CreateTask = () => {
                 <label className="text-xs font-medium text-slate-600">
                   Assign To
                 </label>
-
                 <SelectUsers
                   selectedUsers={taskData.assignedTo}
-                  setSelectedUsers={(value) => {
-                    handleValueChange("assignedTo", value);
-                  }}
+                  setSelectedUsers={(value) =>
+                    handleValueChange("assignedTo", value)
+                  }
                 />
               </div>
             </div>
@@ -301,12 +533,13 @@ const CreateTask = () => {
               <label className="text-xs font-medium text-slate-600">
                 TODO Checklist
               </label>
-
               <TodoListInput
-                todoList={taskData?.todoChecklist}
-                setTodoList={(value) =>
-                  handleValueChange("todoChecklist", value)
-                }
+                todoList={taskData.todoChecklist}
+                className="text-sm text-gray-700"
+                setTodoList={(value) => {
+                  handleValueChange("todoChecklist", value);
+                  updateTodoChecklist(value);
+                }}
               />
             </div>
 
@@ -314,28 +547,100 @@ const CreateTask = () => {
               <label className="text-xs font-medium text-slate-600">
                 Add Attachment
               </label>
-
               <AddAttachmentsInput
-                attachments={taskData?.attachments}
+                attachments={taskData.attachments}
+                className="text-sm text-gray-700"
                 setAttachments={(value) =>
                   handleValueChange("attachments", value)
                 }
               />
             </div>
 
-            {error &&(
+            <div className="mt-3">
+              <label className="text-xs font-medium text-slate-600">
+                Location Address
+              </label>
+              <div className="flex gap-2">
+                <input
+                  className="form-input flex-grow"
+                  placeholder="Enter location address"
+                  value={taskData.location.address || ""}
+                  onChange={({ target }) =>
+                    setTaskData((prev) => ({
+                      ...prev,
+                      location: {
+                        ...prev.location,
+                        address: target.value,
+                      },
+                    }))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleLocationChange(
+                        "address",
+                        taskData.location.address
+                      );
+                    }
+                  }}
+                />
+                <button
+                  className="card-btn text-nowrap !px-3 !py-1 text-sm"
+                  onClick={() =>
+                    handleLocationChange("address", taskData.location.address)
+                  }
+                >
+                  Search
+                </button>
+              </div>
+            </div>
+
+            {/* Added MapContainer and LocationSelector here */}
+            <div className="mt-3">
+              <label className="text-xs font-medium text-slate-600">
+                Select Location on Map
+              </label>
+              <div
+                style={{
+                  height: "300px",
+                  width: "100%",
+                  zIndex: 0,
+                  position: "relative",
+                }}
+              >
+                <MapContainer
+                  center={[
+                    taskData.location.lat || -6.2,
+                    taskData.location.lng || 106.816666,
+                  ]}
+                  zoom={13}
+                  style={{ height: "100%", width: "100%" }}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <LocationSelector
+                    location={taskData.location}
+                    setLocation={handleLocationChange}
+                  />
+                </MapContainer>
+              </div>
+            </div>
+
+            {error && (
               <p className="text-xs font-medium text-red-500 mt-5">{error}</p>
             )}
 
-            <div className="flex justify-end mt-7">
+            <div className="flex justify-end mt-7 z-50 relative">
               <button
                 className="add-btn"
                 onClick={handleSubmit}
                 disabled={loading}
               >
                 {taskId ? "UPDATE TASK" : "CREATE TASK"}
-                </button>
-                </div>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -344,13 +649,78 @@ const CreateTask = () => {
         isOpen={openDeleteAlert}
         onClose={() => setOpenDeleteAlert(false)}
         title="Delete Task"
-        >
-          <DeleteAlert
-            content="Are you sure you want to delete this task?"
-            onDelete={() => deleteTask()}
-          />
-        </Modal>
+      >
+        <DeleteAlert
+          content="Are you sure you want to delete this task?"
+          onDelete={() => deleteTask()}
+        />
+      </Modal>
 
+      <Modal
+        isOpen={openSquareNotification}
+        onClose={() => setOpenSquareNotification(false)}
+        title="Warning"
+      >
+        <div>
+          <p className="mb-4">
+            The following users already have 2 or more high priority tasks
+            assigned:
+          </p>
+          <ul className="list-disc list-inside mb-4">
+            {pendingAssignUsers.map((user) => (
+              <li key={user._id}>{user.name}</li>
+            ))}
+          </ul>
+          <p>Are you sure you want to assign this task to these users?</p>
+          <div className="flex justify-end gap-3 mt-5">
+            <button
+              className="btn btn-secondary px-4 py-1 rounded bg-gray-300"
+              onClick={() => cancelSquareNotification()}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-primary px-4 py-1 rounded bg-blue-600 text-white"
+              onClick={() => confirmAssign()}
+            >
+              Yes
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={openConfirmAssignModal}
+        onClose={() => cancelAssignModal()}
+        title="Confirm Task Assignment"
+      >
+        <div>
+          <p className="mb-4">
+            The following users already have 2 or more high priority tasks
+            assigned:
+          </p>
+          <ul className="list-disc list-inside mb-4">
+            {pendingAssignUsers.map((user) => (
+              <li key={user._id}>{user.name}</li>
+            ))}
+          </ul>
+          <p>Are you sure you want to create a task assigned to these users?</p>
+          <div className="flex justify-end gap-3 mt-5">
+            <button
+              className="btn btn-secondary px-4 py-1 rounded bg-gray-300"
+              onClick={() => cancelAssignModal()}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-primary px-4 py-1 rounded bg-blue-600 text-white"
+              onClick={() => confirmAssignModal()}
+            >
+              Yes, Create Task
+            </button>
+          </div>
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 };

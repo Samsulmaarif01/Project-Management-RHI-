@@ -36,7 +36,10 @@ const SelectUsers = ({ selectedUsers, setSelectedUsers }) => {
 
   const selectrdUserAvatars = allUsers
     .filter((user) => selectedUsers.includes(user._id))
-    .map((user) => user.profileImageUrl);
+    .map((user) => ({
+      profileImageUrl: user.profileImageUrl,
+      name: user.name,
+    }));
 
   useEffect(() => {
     getAllUsers();
@@ -58,7 +61,21 @@ const SelectUsers = ({ selectedUsers, setSelectedUsers }) => {
 
       {selectrdUserAvatars.length > 0 && (
         <div className="cursor-pointer" onClick={() => setIsModalOpen(true)}>
-          <AvatarGroup avatars={selectrdUserAvatars} maxVisible={3} />
+          <div className="flex items-center gap-4">
+            {selectrdUserAvatars.slice(0, 3).map((user, index) => (
+              <div key={index} className="flex items-center gap-1">
+                <img
+                  src={user.profileImageUrl}
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full"
+                />
+                <span className="text-sm font-medium">{user.name}</span>
+              </div>
+            ))}
+            {selectrdUserAvatars.length > 3 && (
+              <span className="text-sm font-medium">+{selectrdUserAvatars.length - 3}</span>
+            )}
+          </div>
         </div>
       )}
 
@@ -69,28 +86,35 @@ const SelectUsers = ({ selectedUsers, setSelectedUsers }) => {
       >
         <div className="space-y-4 h-[60vh] overflow-y-auto">
           {allUsers.map((user) => (
-            <div
-              key={user._id}
-              className=" flex items-center gap-4 p-3 border-b border-gray-200"
-            >
-              <img
-                src={user.profileImageUrl}
-                alt={user.name}
-                className="w-10 h-10 rounded-full"
-              />
-              <div className="flex-1">
+          <div
+            key={user._id}
+            className=" flex items-center gap-4 p-3 border-b border-gray-200"
+          >
+            <img
+              src={user.profileImageUrl && user.profileImageUrl.trim() !== "" ? user.profileImageUrl : null}
+              alt={user.name}
+              className="w-10 h-10 rounded-full"
+            />
+            <div className="flex-1 flex flex-col">
+              <div className="flex items-center gap-2">
                 <p className="font-medium text-gray-800 dark:text-white">
                   {user.name}
                 </p>
-                <p className="text-[13px] text-gray-500">{user.email}</p>
+                {user.position && (
+                  <span className="text-green-600 text-xs font-semibold bg-green-100 px-2 py-0.5 rounded-md">
+                    {user.position}
+                  </span>
+                )}
               </div>
-              <input
-                type="checkbox"
-                checked={tempSelectedUsers.includes(user._id)}
-                onChange={() => toggleUserSelection(user._id)}
-                className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded-sm outline-none"
-              />
+              <p className="text-[13px] text-gray-500">{user.email}</p>
             </div>
+            <input
+              type="checkbox"
+              checked={tempSelectedUsers.includes(user._id)}
+              onChange={() => toggleUserSelection(user._id)}
+              className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded-sm outline-none"
+            />
+          </div>
           ))}
         </div>
 
