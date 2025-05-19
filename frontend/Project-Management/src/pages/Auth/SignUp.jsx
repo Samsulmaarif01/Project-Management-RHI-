@@ -89,49 +89,83 @@ const Signup = () => {
   return (
     <AuthLayout>
       <div className="lg:w-full h-auto md:h-full mt-10 md:mt-0 flex flex-col justify-center">
-        <h3 className="text-xl font-semibold text-black">Buat Akun Baru</h3>
-        <p className="text-xs text-slate-700 mt-[5px] mb-6">
+        <h3 className="text-xl font-semibold text-white">Buat Akun Baru</h3>
+        <p className="text-xs text-white-700 mt-[5px] mb-6">
           Silakan masukkan Data Lengkap Anda
         </p>
 
         <form onSubmit={handleSignUp}>
           <ProfilePhotoSelector image={profilPic} setImage={setProfilPic} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              type="text"
-              label="Nama Lengkap"
-              value={fullName}
-              onChange={({ target }) => setFullName(target.value)}
-              placeholder="Nama Lengkap"
-            />
-            <Input
-              type="email"
-              label="Alamat Email"
-              value={email}
-              onChange={({ target }) => setEmail(target.value)}
-              placeholder="Email"
-            />
-            <Input
-              type="password"
-              label="Password"
-              value={password}
-              onChange={({ target }) => setPassword(target.value)}
-              placeholder="Password"
-            />
-            <Input
-              type="text"
-              label="Jabatan (Posisi)"
-              value={position}
-              onChange={({ target }) => setPosition(target.value)}
-              placeholder="Contoh: HRD, Arsitek, Keuangan"
-            />
-            <Input
-              type="text"
-              label="Admin Invite Token"
-              value={AdminInviteToken}
-              onChange={({ target }) => setAdminInviteToken(target.value)}
-              placeholder="6 digit kode undangan admin"
-            />
+            <div className="flex flex-col">
+              <label htmlFor="fullName" className="text-sm text-white-600 mb-1">
+                Nama Lengkap
+              </label>
+              <Input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={({ target }) => setFullName(target.value)}
+                placeholder="Nama Lengkap"
+                className="p-2 border border-gray-300 rounded"
+              />
+            </div>
+            
+            <div className="flex flex-col">
+              <label htmlFor="email" className="text-sm text-white-600 mb-1">
+                Alamat Email
+              </label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={({ target }) => setEmail(target.value)}
+                placeholder="Email"
+                className="p-2 border border-gray-300 rounded"
+              />
+            </div>
+            
+            <div className="flex flex-col">
+              <label htmlFor="password" className="text-sm text-white-600 mb-1">
+                Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={({ target }) => setPassword(target.value)}
+                placeholder="Password"
+                className="p-2 border border-gray-300 rounded"
+              />
+            </div>
+            
+            <div className="flex flex-col">
+              <label htmlFor="position" className="text-sm text-white-600 mb-1">
+                Jabatan (Posisi)
+              </label>
+              <Input
+                id="position"
+                type="text"
+                value={position}
+                onChange={({ target }) => setPosition(target.value)}
+                placeholder="Contoh: HRD, Arsitek, Keuangan"
+                className="p-2 border border-gray-300 rounded"
+              />
+            </div>
+            
+            <div className="flex flex-col col-span-2">
+              <label htmlFor="adminToken" className="text-sm text-white-600 mb-1">
+                Admin Invite Token
+              </label>
+              <Input
+                id="adminToken"
+                type="text"
+                value={AdminInviteToken}
+                onChange={({ target }) => setAdminInviteToken(target.value)}
+                placeholder="6 digit kode undangan admin"
+                className="p-2 border border-gray-300 rounded"
+              />
+            </div>
 
             {error && (
               <p className="text-red-500 text-sm col-span-2">{error}</p>
@@ -144,8 +178,8 @@ const Signup = () => {
               Sign Up
             </button>
 
-            <p className="text-xs text-slate-700 mt-4 col-span-2">
-              Sudah punya akun?{" "}
+            <p className="text-xs text-white-800 mt-3 col-span-2">
+              Sudah punya akun? {" "}
               <Link to="/login" className="text-blue-600 hover:underline">
                 Masuk
               </Link>

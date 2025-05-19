@@ -71,10 +71,10 @@ const Login = () => {
   return (
     <AuthLayout>
       <div className="lg:w-[70%] h-3/4 md:h-full flex flex-col justify-center items-center">
-        <h3 className="text-xl font-semibold text-black -mt-1">
+        <h3 className="text-xl font-semibold text-white -mt-1">
           Selamat Datang
         </h3>
-        <p className="text-xs text-slate-700 mt-[5px] mb-6">
+        <p className="text-xs text-white-700 mt-[5px] mb-6">
           Silakan masukkan email dan password
         </p>
 
@@ -84,7 +84,7 @@ const Login = () => {
           className="w-full flex flex-col gap-4"
         >
           <div className="flex flex-col">
-            <label htmlFor="email" className="text-sm text-gray-600 mb-1">
+            <label htmlFor="email" className="text-sm text-white-600 mb-1">
               Email Address
             </label>
             <Input
@@ -100,7 +100,7 @@ const Login = () => {
           </div>
 
           <div className="flex flex-col">
-            <label htmlFor="password" className="text-sm text-gray-600 mb-1">
+            <label htmlFor="password" className="text-sm text-white-600 mb-1">
               Password
             </label>
             <Input
@@ -124,8 +124,8 @@ const Login = () => {
             Login
           </button>
 
-          <p className="text-xs text-slate-800 mt-3">
-            Belum punya akun?{" "}
+          <p className="text-xs text-white-800 mt-3">
+            Belum punya akun? {" "}
             <Link to="/signup" className="text-blue-600 hover:underline">
               Daftar Sekarang
             </Link>
